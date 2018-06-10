@@ -9,7 +9,10 @@ Usage:
 
 """
 import time
+from io import StringIO
 import requests
+
+import pandas as pd
 
 try:
     from urllib.parse import quote_plus  # for Python 2.x
@@ -21,6 +24,8 @@ class ShoutbaseReport(object):
     """
     Helper Class to create a Shoutbase report via
     API request.
+
+    # TODO: Separate ShoutbaseClient class from a Report class?
     """
     def __init__(self, user_params=None):
         """
@@ -34,26 +39,37 @@ class ShoutbaseReport(object):
         self.username = user_params['username']
         self.password = user_params['password']
         self.report_url = None
+        self.report_data = None
 
     def run(self, report_params=None):
         """
         Run the report:
-        1) Get report URL if needed
-        2) Fetch data using API
-        3) TODO: create report
+            1) Get report URL if needed
+            2) Fetch data using API
+            3) TODO: create report
         """
         if report_params is not None:
-            self.create_report_url(report_params)
+            self.compose_report_url(report_params)
         if self.report_url is None:
             return Exception("Report not defined.")
 
         response = requests.get(self.report_url,
                                 auth=(self.username, self.password))
 
-        return response
-        #return True
+        self.report_data = response.text
+        report_df = self.format_report()
+        return report_df
 
-    def create_report_url(self, report_params):
+    def format_report(self):
+        """convert raw report data to a dataframe
+        """
+        if not self.report_data:
+            raise Exception("Report has not yet been run.")
+
+        report_df = pd.read_csv(StringIO(self.report_data))
+        return report_df
+
+    def compose_report_url(self, report_params):
         """Define report parameters, do not run report
         """
         # TODO: run some checks on input
