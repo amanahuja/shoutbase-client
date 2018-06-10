@@ -60,7 +60,10 @@ class ShoutbaseReport(object):
         report_df = self.format_report()
         return report_df
 
-    def format_report(self):
+    def format_report(self,
+                      pythonic_colnames=True,
+                      short_usernames=True,
+                      ):
         """
         Format report:
             * Convert raw report data to a dataframe
@@ -72,6 +75,11 @@ class ShoutbaseReport(object):
 
         report_df = pd.read_csv(StringIO(self.report_data))
 
+        # truncate usernames
+        trunc_name = lambda x: x.split('@')[0]
+        if short_usernames:
+            report_df.creator = report_df.creator.apply(trunc_name)
+
         # renaming columns
         rename_map = {
             'startAt': 'start_time',
@@ -82,7 +90,8 @@ class ShoutbaseReport(object):
             'description': 'description',
             'creator': 'person',
         }
-        report_df = report_df.rename(index=str, columns=rename_map)
+        if pythonic_colnames:
+            report_df = report_df.rename(index=str, columns=rename_map)
 
         return report_df
 
