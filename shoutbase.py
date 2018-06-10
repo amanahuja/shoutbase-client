@@ -71,6 +71,12 @@ class ShoutbaseClient(object):
 
         report_df = pd.read_csv(StringIO(self.report_data))
 
+        # deal with datetime format
+        tsformat = '%Y-%m-%d %H:%M:%S +%f UTC'
+        time_cols = ['startAt', 'endAt']
+        report_df[time_cols] = report_df[time_cols]\
+                  .apply(pd.to_datetime, format=tsformat)
+
         # truncate usernames
         trunc_name = lambda x: x.split('@')[0]
         if short_usernames:
@@ -171,7 +177,16 @@ class ShoutbaseReport(ShoutbaseClient):
 
     def summary_by_week(self, report_params):
         """For each week, summarize hours reported per user"""
-        pass
+        raw_df = self.run(report_params=report_params)
+
+        # create time series
+        raw_ts = raw_df.set_index('start_time')
+
+        # resample to business week starting Mondays
+        report_ts = raw_ts.resample('W-MON', ).sum()
+        report_ts.index.name = 'week_starting_date'
+
+        return report_ts
 
     def last_report_date(self, report_params):
         """For each user, provide the last date hours were reported"""
