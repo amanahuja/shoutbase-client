@@ -160,6 +160,13 @@ class ShoutbaseReport(ShoutbaseClient):
     """Extends base client with standard reports
     """
 
+    def total_hours_by_user(self, report_params):
+        """Total hours reported per user"""
+        report_df = self.run(report_params=report_params)
+
+        report_df.pivot_table(values='duration_hours', index='person')
+        return report_df
+
     def summary_by_week(self, report_params):
         pass
 
