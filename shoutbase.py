@@ -8,15 +8,6 @@ Usage:
     >>> report.run(report_params)
 
 """
-# import requests
-# import urllib
-# import csv
-#
-# try:
-#     from StringIO import StringIO  # for Python 2.x
-# except ImportError:
-#     from io import StringIO  # for Python 3.x
-#
 import time
 import requests
 
