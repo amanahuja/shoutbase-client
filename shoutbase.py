@@ -19,13 +19,9 @@ try:
 except ImportError:
     from urllib import quote_plus  # for Python 3.x
 
-
-class ShoutbaseReport(object):
+class ShoutbaseClient(object):
     """
-    Helper Class to create a Shoutbase report via
-    API request.
-
-    # TODO: Separate ShoutbaseClient class from a Report class?
+    Base Helper class for the ShoutBase API
     """
     def __init__(self, user_params=None):
         """
@@ -125,7 +121,6 @@ class ShoutbaseReport(object):
 
     """Util Methods
     """
-
     def _tagid_from_name(self, tag_name):
         """return tag id given tag name
         """
@@ -159,3 +154,15 @@ class ShoutbaseReport(object):
         pattern = '%Y-%m-%d'
         epoch = int(time.mktime(time.strptime(date, pattern)))
         return str(epoch * 1000)
+
+
+class ShoutbaseReport(ShoutbaseClient):
+    """Extends base client with standard reports
+    """
+
+    def summary_by_week(self, report_params):
+        pass
+
+    def last_report_date(self, report_params):
+        pass
+
