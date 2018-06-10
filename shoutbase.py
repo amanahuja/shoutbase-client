@@ -38,9 +38,9 @@ class ShoutbaseReport(object):
     def run(self, report_params=None):
         """
         Run the report:
-        1) define report if not already defined
-        2) fetch data using API
-        3) other stuff
+        1) Get report URL if needed
+        2) Fetch data using API
+        3) TODO: create report
         """
         if report_params is not None:
             self.create_report_url(report_params)
@@ -54,8 +54,8 @@ class ShoutbaseReport(object):
         #return True
 
     def create_report_url(self, report_params):
-        """Define report parameters, do not run report"""
-
+        """Define report parameters, do not run report
+        """
         # TODO: run some checks on input
         team_name = report_params['team_name']
         start_date = report_params['start_date']
@@ -65,14 +65,14 @@ class ShoutbaseReport(object):
 
         # conversions
         tag_ids = list(map(self._tagid_from_name, tag_list))
-        team_id = self.toTeamId(team_name)
+        team_id = self._teamid_from_name(team_name)
 
         # Construct report request url
         url = "".join([
             self.hostname,
             '/v1/export/timerecords?teamId=', team_id,
-            '&closedOnly=false&startsBy=', self.toEpoch(start_date),
-            '&endsBy=', self.toEpoch(end_date),
+            '&closedOnly=false&startsBy=', self.to_epoch(start_date),
+            '&endsBy=', self.to_epoch(end_date),
             '&tagIds=', ",".join(tag_ids),
             '&tagFilterType=', tag_filter_type,
         ])
@@ -97,7 +97,9 @@ class ShoutbaseReport(object):
         tag_id = data[0]["id"] if data else ""
         return tag_id
 
-    def toTeamId(self, name):
+    def _teamid_from_name(self, name):
+        """return team id given team name
+        """
         team_url = self.hostname + '/v1/teams?name=' + quote_plus(name)
         team_response = requests.get(team_url,
                                      auth=(self.username, self.password))
@@ -109,7 +111,9 @@ class ShoutbaseReport(object):
         return team_id
 
     @staticmethod
-    def toEpoch(date):
+    def to_epoch(date):
+        """date format conversion
+        """
         pattern = '%Y-%m-%d'
         epoch = int(time.mktime(time.strptime(date, pattern)))
         return str(epoch * 1000)
