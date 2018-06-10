@@ -61,12 +61,29 @@ class ShoutbaseReport(object):
         return report_df
 
     def format_report(self):
-        """convert raw report data to a dataframe
+        """
+        Format report:
+            * Convert raw report data to a dataframe
+            * Apply transformations applicable to all reports
+
         """
         if not self.report_data:
             raise Exception("Report has not yet been run.")
 
         report_df = pd.read_csv(StringIO(self.report_data))
+
+        # renaming columns
+        rename_map = {
+            'startAt': 'start_time',
+            'endAt': 'end_time',
+            'durationHours': 'duration_hours',
+            'tagNames': 'tags',
+            'teamNames': 'teams',
+            'description': 'description',
+            'creator': 'person',
+        }
+        report_df = report_df.rename(index=str, columns=rename_map)
+
         return report_df
 
     def compose_report_url(self, report_params):
