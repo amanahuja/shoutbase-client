@@ -162,14 +162,34 @@ class ShoutbaseReport(ShoutbaseClient):
 
     def total_hours_by_user(self, report_params):
         """Total hours reported per user"""
-        report_df = self.run(report_params=report_params)
+        raw_df = self.run(report_params=report_params)
 
-        report_df.pivot_table(values='duration_hours', index='person')
+        report_df = raw_df.pivot_table(
+            values='duration_hours', aggfunc='sum',
+            index='person')
         return report_df
 
     def summary_by_week(self, report_params):
+        """For each week, summarize hours reported per user"""
         pass
 
     def last_report_date(self, report_params):
+        """For each user, provide the last date hours were reported"""
         pass
 
+    def hours_by_project(self, report_params):
+        """Summarize the hours spent on each project"""
+        report_df = self.hours_by_team(report_params)
+
+        # rename team --> project
+        report_df.index.name = 'project'
+        return report_df
+
+    def hours_by_team(self, report_params):
+        """Summarize the hours spent by each team"""
+        raw_df = self.run(report_params=report_params)
+        report_df = raw_df.pivot_table(
+            values='duration_hours', aggfunc='sum',
+            index='teams'
+        )
+        return report_df
