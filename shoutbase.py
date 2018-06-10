@@ -65,7 +65,7 @@ class ShoutbaseReport(object):
     def create_report_url(self, report_params):
         """Define report parameters, do not run report"""
 
-        # TODO: run some checks before saving
+        # TODO: run some checks on input
         team_name = report_params['team_name']
         start_date = report_params['start_date']
         end_date = report_params['end_date']
@@ -73,7 +73,7 @@ class ShoutbaseReport(object):
         tag_filter_type = report_params.get('tag_filter_type', None)
 
         # conversions
-        tag_ids = self.toCommas(self.toTagIds(tag_list))
+        tag_ids = list(map(self._tagid_from_name, tag_list))
         team_id = self.toTeamId(team_name)
 
         # Construct report request url
@@ -82,27 +82,28 @@ class ShoutbaseReport(object):
             '/v1/export/timerecords?teamId=', team_id,
             '&closedOnly=false&startsBy=', self.toEpoch(start_date),
             '&endsBy=', self.toEpoch(end_date),
-            '&tagIds=', tag_ids,
+            '&tagIds=', ",".join(tag_ids),
             '&tagFilterType=', tag_filter_type,
         ])
 
         # save URL
         self.report_url = url
-        return True
+        return url
 
     """Util Methods
     """
 
-    def toTagId(self, tagName):
-        tag_url = self.hostname + '/v1/tags?name=' + quote_plus(tagName)
-        tag_response = requests.get(tag_url,
-                                    auth=(self.username, self.password))
-        tag_json = tag_response.json()
-        if tag_json["data"]:
-            tag_id = tag_json["data"][0]["id"]
-        else:
-            tag_id = ""
+    def _tagid_from_name(self, tag_name):
+        """return tag id given tag name
+        """
+        url = self.hostname + '/v1/tags?name=' + quote_plus(tag_name)
 
+        # fetch data
+        resp = requests.get(url, auth=(self.username, self.password))
+        data = resp.json()["data"]
+
+        # get tag id
+        tag_id = data[0]["id"] if data else ""
         return tag_id
 
     def toTeamId(self, name):
@@ -121,12 +122,3 @@ class ShoutbaseReport(object):
         pattern = '%Y-%m-%d'
         epoch = int(time.mktime(time.strptime(date, pattern)))
         return str(epoch * 1000)
-
-    @staticmethod
-    def toTagIds(tagNames):
-        ids = list(map(lambda x: self.toTagId(x), tagNames))
-        return filter(lambda x: x != "", ids)
-
-    @staticmethod
-    def toCommas(ids):
-        return ",".join(ids)
